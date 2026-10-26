@@ -25,5 +25,21 @@ pipeline {
                 '''
             }
         }
+
+	stage('接口测试'){
+	    steps {
+		sh '''
+		    mkdir -p reports
+		    ./venv/bin/python3 -m pytest -v --junitxml=reports/junit.xml
+                   '''
+
+            }
+
+        }
+	post {
+            always {
+                junit 'reports/junit.xml'
+}
+}
     }
 }
