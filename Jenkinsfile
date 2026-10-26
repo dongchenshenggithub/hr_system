@@ -11,7 +11,7 @@ pipeline {
         stage('安装依赖') {
             steps {
                 sh '''
-	            rm -rf venv
+                    rm -rf venv
                     python3 -m venv venv
                     ./venv/bin/pip install -r requirements.txt
                 '''
@@ -26,20 +26,23 @@ pipeline {
             }
         }
 
-	stage('接口测试'){
-	    steps {
-		sh '''
-		    mkdir -p reports
-		    ./venv/bin/python3 -m pytest -v --junitxml=reports/junit.xml
-                   '''
-
+        stage('接口测试') {
+            steps {
+                sh '''
+                    mkdir -p reports
+                    ./venv/bin/python -m pytest -v --junitxml=reports/junit.xml
+                '''
             }
-
         }
-	post {
-            always {
-                junit 'reports/junit.xml'
-}
-}
+    }
+
+    post {
+        always {
+            script {
+                if (fileExists('reports/junit.xml')) {
+                    junit 'reports/junit.xml'
+                }
+            }
+        }
     }
 }
