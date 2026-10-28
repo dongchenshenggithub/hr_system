@@ -48,3 +48,18 @@ def client():
         yield c
     # 测试结束后清除覆盖，避免影响其他测试
     app.dependency_overrides.clear()
+
+@pytest.fixture
+def registered_user(client):
+    """注册一个测试用户，返回用户名和密码。"""
+    payload = {"username": "testuser", "password": "secret123"}
+    client.post("/api/auth/register", json=payload)
+    return payload
+
+
+@pytest.fixture
+def auth_headers(client, registered_user):
+    """登录测试用户，返回带 Bearer token 的请求头。"""
+    response = client.post("/api/auth/login", json=registered_user)
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
