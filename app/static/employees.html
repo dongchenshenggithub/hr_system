@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>员工管理</title>
+</head>
+<body>
+    <h1>员工管理</h1>
+    <p><a href="#" id="logout-link">退出登录</a></p>
+
+    <h2>新增员工</h2>
+    <form id="employee-form">
+        <label>姓名 <input type="text" id="emp-name" required></label><br><br>
+        <label>邮箱 <input type="email" id="emp-email" required></label><br><br>
+
+        <!-- 下拉列表：Selenium 用 Select 类操作 -->
+        <label>部门
+            <select id="emp-department">
+                <option value="">请选择</option>
+            </select>
+        </label><br><br>
+
+        <!-- 日期输入：可以用 send_keys 填，也可以断言 value -->
+        <label>入职日期 <input type="date" id="emp-hire-date"></label><br><br>
+
+        <!-- 单选框：测试多个 radio 的选中状态 -->
+        <fieldset>
+            <legend>雇佣类型</legend>
+            <label><input type="radio" name="employment_type" value="full_time" id="type-full-time" checked> 全职</label>
+            <label><input type="radio" name="employment_type" value="part_time" id="type-part-time"> 兼职</label>
+            <label><input type="radio" name="employment_type" value="intern" id="type-intern"> 实习</label>
+        </fieldset><br>
+
+        <!-- 复选框：测试勾选和取消勾选 -->
+        <label><input type="checkbox" id="emp-remote"> 远程办公</label><br><br>
+
+        <!-- 文本域：测试多行输入 -->
+        <label>备注<br><textarea id="emp-notes" rows="3" cols="40"></textarea></label><br><br>
+
+        <button type="submit" id="add-btn">添加</button>
+        <!-- 一个默认禁用的按钮，测试元素的 enabled/disabled 状态 -->
+        <button type="button" id="reset-btn" disabled>重置（暂不可用）</button>
+    </form>
+    <p id="form-message"></p>
+
+    <h2>员工列表</h2>
+    <table border="1" id="employee-table">
+        <thead>
+            <tr><th>ID</th><th>姓名</th><th>邮箱</th><th>部门</th></tr>
+        </thead>
+        <tbody id="employee-tbody"></tbody>
+    </table>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        // 加载部门下拉选项
+        async function loadDepartments() {
+            const response = await fetch('/api/employees/departments', {
+                headers: {'Authorization': `Bearer ${token}`},
+            });
+            if (!response.ok) return;
+            const departments = await response.json();
+            const select = document.getElementById('emp-department');
+            for (const dept of departments) {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                select.appendChild(option);
+            }
+        }
+
+        async function loadEmployees() {
+            const response = await fetch('/api/employees/', {
+                headers: {'Authorization': `Bearer ${token}`},
+            });
+            const tbody = document.getElementById('employee-tbody');
+            tbody.innerHTML = '';
+            if (!response.ok) return;
+            const employees = await response.json();
+            for (const emp of employees) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${emp.id}</td><td>${emp.name}</td><td>${emp.email}</td><td>${emp.department ?? ''}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        document.getElementById('employee-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('emp-name').value;
+            const email = document.getElementById('emp-email').value;
+            const department = document.getElementById('emp-department').value;
+            const message = document.getElementById('form-message');
+
+            const response = await fetch('/api/employees/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({name, email, department: department || null}),
+            });
+
+            if (response.ok) {
+                message.textContent = '添加成功';
+                document.getElementById('employee-form').reset();
+                await loadEmployees();
+            } else {
+                message.textContent = '添加失败';
+            }
+        });
+
+        document.getElementById('logout-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        });
+
+        loadDepartments();
+        loadEmployees();
+    </script>
+</body>
+</html>

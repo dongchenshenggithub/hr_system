@@ -9,6 +9,10 @@ from app.features.employees import models, schemas
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
 
+@router.get("/departments", response_model=list[str])
+def list_departments(current_user=Depends(get_current_user)):
+    """返回可选的部门列表，供前端下拉框使用。"""
+    return ["研发部", "产品部", "测试部", "人事部", "财务部"]
 
 @router.get("/", response_model=list[schemas.EmployeeOut])
 def list_employees(
