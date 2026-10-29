@@ -2,13 +2,13 @@
 
 import pytest
 
-from tests.ui.conftest import BASE_URL
+from tests.ui.conftest import BROWSER_BASE_URL
 from tests.ui.pages.login_page import LoginPage
 
 
 @pytest.fixture
 def login_page(driver):
-    return LoginPage(driver, BASE_URL)
+    return LoginPage(driver, BROWSER_BASE_URL)
 
 
 def test_login_page_loaded(login_page):
