@@ -3,8 +3,8 @@ pipeline {
 
     parameters {
         choice(
-            name: "TEST_SUIT"
-            choices: ['smoke', 'regression', 'all']
+            name: "TEST_SUIT",
+            choices: ['smoke', 'regression', 'all'],
             description: '选择你要的测试集'
     )
 }
