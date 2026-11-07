@@ -82,7 +82,7 @@ pipeline {
             steps {
                 sh '''
                     IMAGE_TAG=$(git rev-parse --short HEAD)
-                    docker build -t hr-system:${IMAGE_TAG}
+                    docker build -t hr-system:${IMAGE_TAG} .
                     docker tag hr-system:${IMAGE_TAG} hr-system:lastest
                     echo "镜像已他妈构建:hr-system:${IMAGE_TAG}"
                     docker image prune -f --filter "label!=keep" 
