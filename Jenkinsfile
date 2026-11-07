@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(
+            name: "TEST_SUIT"
+            choices: ['smoke', 'regression', 'all']
+            description: '选择你要的测试集'
+    )
+}
+
     stages {
         stage('拉取代码') {
             steps {
@@ -28,11 +36,12 @@ pipeline {
 
         stage('接口测试') {
             steps {
+                def markerArg = params.TEST_SUIT == 'all' ? '' : "-m ${params.TEST_SUIT}"
                 sh '''
                     mkdir -p reports
-                    ./venv/bin/python -m pytest tests/api/ -v --junitxml=reports/api-junit.xml
+                    ./venv/bin/python -m pytest tests/api/ -v ${markerArg} --junitxml=reports/api-junit.xml
                 '''
-            }
+            }	
         }
 
         stage('UI 测试') {
