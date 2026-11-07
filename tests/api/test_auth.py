@@ -1,5 +1,6 @@
+import pytest
 """认证接口测试：注册与登录。"""
-
+pytestmark = [pytest.mark.smoke, pytest.mark.regression]
 
 def test_register_success(client):
     """注册新用户应返回 201，且响应中不包含密码字段。"""

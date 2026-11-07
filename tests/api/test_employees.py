@@ -1,5 +1,7 @@
 """员工接口测试：鉴权、创建与列表。"""
+import pytest
 
+pytestmark = pytest.mark.smoke
 
 def test_list_employees_without_token(client):
     """未带 token 访问员工列表应返回 401。"""

@@ -65,7 +65,7 @@ def employees_page(driver, registered_user):
     page.open_page()
     return page
 '''
-
+@pytest.mark.regression
 def test_form_elements_present(employees_page, driver):
     """员工页应包含下拉框、日期、单选框、复选框、文本域、禁用按钮。"""
     print(f"当前 URL: {driver.current_url}")
@@ -76,7 +76,7 @@ def test_form_elements_present(employees_page, driver):
     assert employees_page.find(employees_page.NOTES).is_displayed()
     assert employees_page.is_reset_button_enabled() is False
 
-
+@pytest.mark.regression
 def test_department_dropdown_has_options(employees_page):
     """部门下拉框应包含后端返回的部门。"""
     from selenium.webdriver.support.ui import Select
@@ -85,7 +85,7 @@ def test_department_dropdown_has_options(employees_page):
     assert "研发部" in options
     assert "测试部" in options
 
-
+@pytest.mark.smoke
 def test_employment_type_radio(employees_page):
     """单选框默认选中全职，点击兼职后切换。"""
     assert employees_page.is_employment_type_selected("full_time") is True
@@ -93,7 +93,7 @@ def test_employment_type_radio(employees_page):
     assert employees_page.is_employment_type_selected("part_time") is True
     assert employees_page.is_employment_type_selected("full_time") is False
 
-
+@pytest.mark.smoke
 def test_remote_checkbox_toggle(employees_page):
     """复选框点击后选中，再点取消。"""
     assert employees_page.is_remote_selected() is False
@@ -102,7 +102,7 @@ def test_remote_checkbox_toggle(employees_page):
     employees_page.toggle_remote()
     assert employees_page.is_remote_selected() is False
 
-
+@pytest.mark.smoke
 def test_hire_date_and_notes_input(employees_page):
     """日期和文本域能输入并读回值。"""
     employees_page.set_hire_date("2026-10-28")
@@ -110,7 +110,7 @@ def test_hire_date_and_notes_input(employees_page):
     employees_page.set_notes("测试备注")
     assert employees_page.get_notes() == "测试备注"
 
-
+@pytest.mark.smoke
 def test_add_employee_updates_table(employees_page):
     """填写表单提交后，列表出现新员工。"""
     unique_email = f"ui_{uuid.uuid4().hex[:8]}@example.com"

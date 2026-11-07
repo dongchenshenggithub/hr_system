@@ -10,7 +10,7 @@ from tests.ui.pages.login_page import LoginPage
 def login_page(driver):
     return LoginPage(driver, BROWSER_BASE_URL)
 
-
+@pytest.mark.smoke
 def test_login_page_loaded(login_page):
     """登录页应加载出用户名、密码、登录按钮。"""
     login_page.open_page()
@@ -18,13 +18,13 @@ def test_login_page_loaded(login_page):
     assert login_page.find(login_page.PASSWORD).is_displayed()
     assert login_page.find(login_page.LOGIN_BTN).is_displayed()
 
-
+@pytest.mark.regression
 def test_remember_me_default_unchecked(login_page):
     """“记住我”复选框默认未选中。"""
     login_page.open_page()
     assert login_page.is_remember_me_selected() is False
 
-
+@pytest.mark.smoke
 def test_login_wrong_password_shows_message(login_page, driver):
     """密码错误时页面显示错误提示，不跳转。"""
     login_page.open_page()
