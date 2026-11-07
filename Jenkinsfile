@@ -68,7 +68,7 @@ pipeline {
                 }
             }
         }
-    }
+   
          stage('构建镜像'){
             steps {
                 sh '''
@@ -80,6 +80,7 @@ pipeline {
                     echo "已清理非最新镜像以节省空间"   
               '''
     }
+}
 }
     post {
         always {
