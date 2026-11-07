@@ -10,6 +10,11 @@ from fastapi.staticfiles import StaticFiles
 from app.core.database import Base, engine
 from app.features.auth.router import router as auth_router
 from app.features.employees.router import router as employees_router
+import uvicorn
+
+def run():
+    """命令行入口，启动uvicorn服务"""
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000)
 
 # 根据所有继承了 Base 的模型，在数据库中创建对应的表。
 # 表已存在时不会重复创建，也不会修改已有表结构。

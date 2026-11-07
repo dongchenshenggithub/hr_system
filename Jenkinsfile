@@ -52,7 +52,7 @@ pipeline {
                             break
                         fi
                         sleep 1
-                    done
+                    done   
 
                     # 清除代理变量，避免 pytest 连接本地 Selenium 时误走代理
                     unset http_proxy https_proxy all_proxy
@@ -69,7 +69,18 @@ pipeline {
             }
         }
     }
-
+         stage('构建镜像'){
+            steps {
+                sh '''
+                    IMAGE_TAG=$(git rev-parse --short HEAD)
+                    docker build -t hr-system:${IMAGE_TAG}
+                    docker tag hr-system:${IMAGE_TAG} hr-system:lastest
+                    echo "镜像已他妈构建:hr-system:${IMAGE_TAG}"
+                    docker image prune -f --filter "label!=keep" 
+                    echo "已清理非最新镜像以节省空间"   
+              '''
+    }
+}
     post {
         always {
             script {

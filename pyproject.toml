@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hr-system"
+version = "1.0"
+description = "A simple hr system just for practis ui automation test"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "alembic",
+    "passlib[bcrypt]",
+    "python-jose[cryptography]",
+    "email-validator",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "selenium",
+    "requests",
+    "httpx2",
+    "bcrypt==4.0.1",
+]
+
+[project.scripts]
+hr-system = "app.main:run"
+

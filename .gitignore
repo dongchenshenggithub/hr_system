@@ -5,3 +5,6 @@ __pycache__/
 hr.db
 reports/
 reports/
+dist/
+build/
+*.egg-info/
