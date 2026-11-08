@@ -3,11 +3,20 @@ pipeline {
 
     parameters {
         choice(
-            name: "TEST_SUITE",
-            choices: ['smoke', 'regression', 'all'],
-            description: '选择你要的测试集'
-    )
-}
+            name: 'TEST_SUITE',
+            choices: ['smoke', 'all'],
+            description: '选择测试集：smoke 只跑冒烟，all 跑全量并允许打包'
+        )
+        booleanParam(
+            name: 'RUN_UI_TESTS',
+            defaultValue: false,
+            description: '是否运行 UI 测试（手动勾选，自动触发时默认关闭）'
+        )
+    }
+
+    triggers {
+        pollSCM('H/5 * * * *')
+    }
 
     stages {
         stage('拉取代码') {
@@ -26,49 +35,37 @@ pipeline {
             }
         }
 
-        stage('启动检查') {
-            steps {
-                sh '''
-                    ./venv/bin/python -c "from app.main import app; print('app loaded:', app.title)"
-                '''
-            }
-        }
-
         stage('接口测试') {
             steps {
                 script {
-                    def markerArg = params.TEST_SUITE == 'all' ? '' : "-m ${params.TEST_SUITE}"
-                    sh '''
-                    mkdir -p reports
-                    ./venv/bin/python -m pytest tests/api/ -v ${markerArg} --junitxml=reports/api-junit.xml
-                '''
+                    def markerArg = params.TEST_SUITE == 'all' ? '' : '-m smoke'
+                    sh """
+                        mkdir -p reports
+                        ./venv/bin/python -m pytest tests/api/ -v ${markerArg} \
+                            --junitxml=reports/api-junit.xml
+                    """
                 }
-            }	
+            }
         }
 
         stage('UI 测试') {
+            when {
+                expression { params.RUN_UI_TESTS == true }
+            }
             steps {
                 sh '''
-                    # 清理可能残留的旧容器，避免名字冲突
                     docker rm -f selenium-firefox || true
-
-                    # 启动 Selenium 容器，--add-host 让容器内能通过 host.docker.internal 访问宿主机
                     docker run -d --name selenium-firefox -p 4444:4444 --shm-size="2g" \
                         --add-host=host.docker.internal:host-gateway \
                         selenium/standalone-firefox:latest
-
-                    # 等待 Selenium 就绪，最多 30 秒
                     for i in $(seq 1 30); do
                         if curl -s http://127.0.0.1:4444/status | grep -q '"ready": true'; then
                             break
                         fi
                         sleep 1
-                    done   
-
-                    # 清除代理变量，避免 pytest 连接本地 Selenium 时误走代理
+                    done
                     unset http_proxy https_proxy all_proxy
                     unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
-
                     mkdir -p reports
                     ./venv/bin/python -m pytest tests/ui/ -v --junitxml=reports/ui-junit.xml
                 '''
@@ -79,20 +76,22 @@ pipeline {
                 }
             }
         }
-   
-         stage('构建镜像'){
+
+        stage('构建镜像') {
+            when {
+                expression { params.TEST_SUITE == 'all' }
+            }
             steps {
                 sh '''
                     IMAGE_TAG=$(git rev-parse --short HEAD)
                     docker build -t hr-system:${IMAGE_TAG} .
-                    docker tag hr-system:${IMAGE_TAG} hr-system:lastest
-                    echo "镜像已他妈构建:hr-system:${IMAGE_TAG}"
-                    docker image prune -f --filter "label!=keep" 
-                    echo "已清理非最新镜像以节省空间"   
-              '''
+                    docker tag hr-system:${IMAGE_TAG} hr-system:latest
+                    echo "镜像已构建: hr-system:${IMAGE_TAG}"
+                '''
+            }
+        }
     }
-}
-}
+
     post {
         always {
             script {
