@@ -77,6 +77,21 @@ pipeline {
             }
         }
 
+	stage('UI 测试 (Playwright)') {
+	    agent {
+	        docker {
+	            image 'mcr.microsoft.com/playwright:v1.64.1-noble'
+	            args '-u root --ipc=host'
+	        }
+	    }
+	    steps {
+	        sh '''
+	            pip install -r requirements.txt
+	            pytest tests/ui_playwright/ -v --junitxml=reports/ui-junit.xml
+	        '''
+	    }
+	}
+
         stage('构建镜像') {
             when {
                 expression { params.TEST_SUITE == 'all' }
