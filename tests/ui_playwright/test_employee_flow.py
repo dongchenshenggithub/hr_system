@@ -1,18 +1,35 @@
 import uuid
 import pytest
+import requests
 from playwright.sync_api import expect
 
 @pytest.fixture
 def ui_user(app_base_url):
-    import requests
+    session = requests.Session()
+    session.trust_env = False
     payload = {"username": f"uiuser_{uuid.uuid4().hex[:8]}", "password": "Secrect123"}
-    resp = requests.post(
+    #registry an user
+    resp = session.post(
         f"{app_base_url}/api/auth/register",
         json=payload,
-        proxies={"http": None, "https": None, "all": None},
+        # proxies={"http": None, "https": None, "all": None},
     )
+    assert resp.status_code == 201, f"注册失败: {resp.status_code} {resp.text}"
     print(f"注册状态码: {resp.status_code}")
-    return payload
+    #get the token
+    login_resp = session.post(f"{app_base_url}/api/auth/login", json=payload)
+    assert login_resp.status_code == 200, f"登录失败: {login_resp.status_code} {login_resp.text}"
+    token = login_resp.json()["access_token"]
+
+    yield payload
+
+    delete_resp = session.delete(
+        f"{app_base_url}/api/auth/users/{payload['username']}",
+        headers={'Authorization': f"Bearer {token}"},    
+
+    )
+    print(f"删除状态码: {delete_resp.status_code}, 响应: {delete_resp.text}")    
+    session.close()
 
 @pytest.fixture
 def employee_page(page, app_base_url, ui_user):
@@ -38,6 +55,8 @@ def test_form_elements_present(employee_page):
     expect(employee_page.get_by_role("button", name="重置")).to_be_disabled()
 
 def test_department_dropdown_has_option(employee_page):
+    department = employee_page.get_by_label("部门")
+    expect(department.locator("option")).to_have_count(6)  # 等 5 个部门 + 请选择加载完
     options = employee_page.get_by_label("部门").locator("option").all_text_contents()
     assert "产品部" in options
     assert "研发部" in options

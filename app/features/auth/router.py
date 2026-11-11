@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.features.auth import models, schemas, security
+from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -34,3 +35,25 @@ def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
 
     token = security.create_access_token(user.username)
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.delete("/users/{username}", status_code=204)
+def delete_user(
+    username: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """删除指定用户。只允许用户删除自己，防止越权删除他人账号。"""
+    if current_user.username != username:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="只能删除自己的账号",
+        )
+
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    db.delete(user)
+    db.commit()
+    return None
