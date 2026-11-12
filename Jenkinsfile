@@ -80,7 +80,7 @@ pipeline {
 	stage('UI 测试 (Playwright)') {
 	    agent {
 	        docker {
-	            image 'mcr.microsoft.com/playwright:v1.64.1-noble'
+	            image 'mcr.microsoft.com/playwright/python:v1.64.1-noble'
 	            args '-u root --ipc=host'
 	        }
 	    }
