@@ -87,7 +87,9 @@ pipeline {
 	    steps {
 	        sh '''
 	            pip install -r requirements.txt
-	            pytest tests/ui_playwright/ -v --junitxml=reports/ui-junit.xml
+	            pytest tests/ui_playwright/ -v --junitxml=reports/ui-junit.xml \
+		    --alluredir=reports/allure-results \
+                    --clean-alluredir
 	        '''
 	    }
 	}
@@ -116,6 +118,9 @@ pipeline {
                 if (fileExists('reports/ui-junit.xml')) {
                     junit 'reports/ui-junit.xml'
                 }
+                if (fileExists('reports/allure-results')){
+                    allure includeProperties: false, jdk: '', results: [[path: 'reports/allure-results']]  
+               }
             }
         }
     }
