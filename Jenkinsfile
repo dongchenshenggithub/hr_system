@@ -91,6 +91,7 @@ pipeline {
 	            pytest tests/ui_playwright/ -v --junitxml=reports/ui-junit.xml \
 		    --alluredir=reports/allure-results \
                     --clean-alluredir
+          	    chown -R 112:115 reports/allure-results
 	        '''
             stash includes: 'reports/allure-results/**', name: 'allure-results'
 	    }
