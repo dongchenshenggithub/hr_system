@@ -91,6 +91,7 @@ pipeline {
 		    --alluredir=reports/allure-results \
                     --clean-alluredir
 	        '''
+            stash includes: 'reports/allure-results/**', name: 'allure-results'
 	    }
 	}
 
@@ -119,6 +120,7 @@ pipeline {
                     junit 'reports/ui-junit.xml'
                 }
  '''               if (fileExists('reports/allure-results')){'''
+		    unstash 'allure-results'
                     allure includeProperties: false, jdk: '', results: [[path: 'reports/allure-results']]  
               ''' }'''
             }
