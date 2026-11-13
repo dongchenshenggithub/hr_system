@@ -118,9 +118,9 @@ pipeline {
                 if (fileExists('reports/ui-junit.xml')) {
                     junit 'reports/ui-junit.xml'
                 }
-                if (fileExists('reports/allure-results')){
+ '''               if (fileExists('reports/allure-results')){'''
                     allure includeProperties: false, jdk: '', results: [[path: 'reports/allure-results']]  
-               }
+              ''' }'''
             }
         }
     }
