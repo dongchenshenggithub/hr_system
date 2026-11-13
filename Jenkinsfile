@@ -82,6 +82,7 @@ pipeline {
 	        docker {
 	            image 'mcr.microsoft.com/playwright/python:v1.64.1-noble'
 	            args '-u root --ipc=host --network host'
+		    reuseNode true
 	        }
 	    }
 	    steps {
