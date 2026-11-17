@@ -90,7 +90,7 @@ pipeline {
 	            pip install -r requirements.txt
 	            pytest tests/ui_playwright/ -v --junitxml=reports/ui-junit.xml \
 		    --alluredir=reports/allure-results \
-                    --clean-alluredir
+                    --clean-alluredir \
                     --tracing retain-on-failure
           	    chown -R 112:115 reports/allure-results
 	        '''
