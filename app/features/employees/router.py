@@ -1,6 +1,6 @@
 """员工接口路由：列表与创建，均需要登录。"""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -35,3 +35,19 @@ def create_employee(
     db.commit()
     db.refresh(employee)
     return employee
+
+@router.delete("/{employee_id}", status_code=204)
+def delete_employee(
+    employee_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """删除指定员工。需要登录，员工不存在时返回 404。"""
+    employee = db.query(models.Employee).filter(models.Employee.id == employee_id).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="员工不存在")
+    db.delete(employee)
+    db.commit()
+    return None
+
+print("router.py 加载完成，路由数:", len(router.routes))
