@@ -1,5 +1,6 @@
 """员工接口测试：鉴权、创建与列表。"""
 import pytest
+import uuid
 
 pytestmark = pytest.mark.smoke
 
@@ -58,3 +59,28 @@ def test_list_employees_after_create(client, auth_headers):
     data = response.json()
     assert len(data) == 1
     assert data[0]["name"] == "李四"
+
+def test_delete_employee_returns_204(client, auth_headers):
+    """删除存在的员工应返回 204。"""
+    create_resp = client.post("/api/employees/", json={
+        "name": "待删除",
+        "email": f"del_{uuid.uuid4().hex[:8]}@example.com",
+    }, headers=auth_headers)
+    employee_id = create_resp.json()["id"]
+
+    response = client.delete(f"/api/employees/{employee_id}", headers=auth_headers)
+    assert response.status_code == 204
+    assert response.content == b""  # 204 不应该有响应体
+
+
+def test_delete_nonexistent_employee_returns_404(client, auth_headers):
+    """删除不存在的员工应返回 404。"""
+    response = client.delete("/api/employees/999999", headers=auth_headers)
+    assert response.status_code == 404
+    assert "不存在" in response.json()["detail"]
+
+
+def test_delete_employee_without_token_returns_401(client):
+    """未登录删除员工应返回 401。"""
+    response = client.delete("/api/employees/1")
+    assert response.status_code == 401
