@@ -10,3 +10,4 @@ build/
 *.egg-info/
 .vscode/
 test-results/
+tests/ui_playwright/.auth/

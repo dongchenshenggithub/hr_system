@@ -32,11 +32,13 @@ def ui_user(app_base_url):
     session.close()
 
 @pytest.fixture
-def employee_page(page, app_base_url, ui_user):
-    page.goto(f"{app_base_url}/login")
-    page.get_by_label("用户名").fill(ui_user["username"])
-    page.get_by_label("密码").fill(ui_user["password"])
-    page.get_by_role("button", name="登录").click()
+def employee_page(page, app_base_url):
+    # page.goto(f"{app_base_url}/login")
+    # page.get_by_label("用户名").fill(ui_user["username"])
+    # page.get_by_label("密码").fill(ui_user["password"])
+    # page.get_by_role("button", name="登录").click()
+    page.goto(f"{app_base_url}/employees")
+    page.wait_for_selector("#employee-form")    
     try:
         page.wait_for_url("**/employees", timeout=10000)
     except Exception:

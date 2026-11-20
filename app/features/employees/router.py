@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from sqlalchemy.exc import IntegrityError
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.features.employees import models, schemas
@@ -23,6 +23,19 @@ def list_employees(
     return db.query(models.Employee).all()
 
 
+# @router.post("/", response_model=schemas.EmployeeOut, status_code=201)
+# def create_employee(
+#     payload: schemas.EmployeeCreate,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(get_current_user),
+# ):
+#     """创建员工。未登录或 token 无效时返回 401。"""
+#     employee = models.Employee(**payload.model_dump())
+#     db.add(employee)
+#     db.commit()
+#     db.refresh(employee)
+#     return employee
+
 @router.post("/", response_model=schemas.EmployeeOut, status_code=201)
 def create_employee(
     payload: schemas.EmployeeCreate,
@@ -32,9 +45,14 @@ def create_employee(
     """创建员工。未登录或 token 无效时返回 401。"""
     employee = models.Employee(**payload.model_dump())
     db.add(employee)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="该邮箱已被使用")
     db.refresh(employee)
     return employee
+
 
 @router.delete("/{employee_id}", status_code=204)
 def delete_employee(

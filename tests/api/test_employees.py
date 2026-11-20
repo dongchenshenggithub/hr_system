@@ -35,6 +35,7 @@ def test_create_employee(client, auth_headers):
         "email": "zhangsan@example.com",
         "department": "研发部",
     }, headers=auth_headers)
+    print("422 详情:", response.json())   # ← 加这一行
     assert response.status_code == 201
     body = response.json()
     assert body["id"] > 0

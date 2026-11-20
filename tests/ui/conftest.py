@@ -17,6 +17,14 @@ HOST_BASE_URL = "http://127.0.0.1:8000"
 SELENIUM_URL = "http://127.0.0.1:4444"
 BROWSER_BASE_URL = "http://host.docker.internal:8000"
 
+import os
+
+# Selenium 连接本地 4444，避免被系统代理劫持导致 502 Bad Gateway
+for _k in ("http_proxy", "https_proxy", "all_proxy",
+           "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
+    os.environ.pop(_k, None)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def start_server():
     """启动 uvicorn 服务，测试结束后关闭。"""
