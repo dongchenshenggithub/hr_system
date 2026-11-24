@@ -88,10 +88,22 @@ pipeline {
 	    steps {
 	        sh '''
 	            pip install -r requirements.txt
+	            # 启动 uvicorn，监听 0.0.0.0，让容器内浏览器能访问
+        	    python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          	    UVICORN_PID=$!
+
+           	    # 等待服务就绪，最多 15 秒
+           	    for i in $(seq 1 15); do
+              	     if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/health | grep -q "200"; then
+               	        break
+              	     fi
+              	     sleep 1
+           	    done
 	            pytest tests/ui_playwright/ -v --junitxml=reports/ui-junit.xml \
 		    --alluredir=reports/allure-results \
                     --clean-alluredir \
                     --tracing retain-on-failure
+           	    kill $UVICORN_PID || true
           	    chown -R 112:115 reports/allure-results
 	        '''
             stash includes: 'reports/allure-results/**', name: 'allure-results'
