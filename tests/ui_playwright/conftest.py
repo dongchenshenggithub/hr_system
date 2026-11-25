@@ -66,7 +66,7 @@ def auth_storage_state(app_base_url, browser):
 @pytest.fixture(scope="session")
 def browser_context_args(browser_context_args, auth_storage_state):
     """让每个测试的浏览器上下文都加载登录态。"""
-    args = {
+    return {
         **browser_context_args,
         "viewport": {"width": 1280, "height": 800},
         "storage_state": auth_storage_state,
