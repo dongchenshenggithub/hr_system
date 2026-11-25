@@ -5,8 +5,8 @@ from playwright.sync_api import Playwright, sync_playwright, expect
 @pytest.mark.parametrize("username, password, employee_name, mailbox", [
     ("admin","admin123","朱老八", "laoba.zhu@example.com")
 ])
-def test_e2e_add_employee(page, username, password, employee_name, mailbox):
-    page.goto("http://127.0.0.1:8000/login")
+def test_e2e_add_employee(page, username, password, employee_name, mailbox, app_base_url):
+    page.goto(f"{app_base_url}/login")
     page.get_by_role("textbox", name="用户名").fill(username)
     page.get_by_role("textbox", name="密码").fill(password)
     page.get_by_role("checkbox", name="记住我").check()

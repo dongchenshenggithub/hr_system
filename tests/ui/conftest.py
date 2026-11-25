@@ -8,14 +8,15 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
+from tests.config import BROWSER_BASE_URL, APP_BASE_URL, SELENIUM_URL
 # 被测服务的地址。
 # UI 测试的浏览器跑在 Docker 容器里，容器内的 127.0.0.1 是容器自己，
 # 所以要用 host.docker.internal 指向宿主机。
-# BASE_URL = "http://host.docker.internal:8000"
-HOST_BASE_URL = "http://127.0.0.1:8000"
-# Selenium 容器的地址。容器把 4444 端口映射到宿主机，pytest 从宿主机连接它。
-SELENIUM_URL = "http://127.0.0.1:4444"
-BROWSER_BASE_URL = "http://host.docker.internal:8000"
+# # BASE_URL = "http://host.docker.internal:8000"
+# HOST_BASE_URL = "http://127.0.0.1:8000"
+# # Selenium 容器的地址。容器把 4444 端口映射到宿主机，pytest 从宿主机连接它。
+# SELENIUM_URL = "http://127.0.0.1:4444"
+# BROWSER_BASE_URL = "http://host.docker.internal:8000"
 
 import os
 
@@ -39,7 +40,7 @@ def start_server():
     # 等待服务就绪，最多 10 秒
     for _ in range(20):
         try:
-            if requests.get(f"http://127.0.0.1:8000/health", timeout=1).status_code == 200:
+            if requests.get(f"{APP_BASE_URL}/health", timeout=1).status_code == 200:
                 break
         except Exception:
             time.sleep(0.5)

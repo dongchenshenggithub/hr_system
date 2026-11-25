@@ -6,8 +6,9 @@ import pytest
 import requests
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-from tests.ui.conftest import BROWSER_BASE_URL, HOST_BASE_URL
+from tests.config import BROWSER_BASE_URL, APP_BASE_URL
+ 
+# from tests.ui.conftest import BROWSER_BASE_URL, HOST_BASE_URL
 from tests.ui.pages.employees_page import EmployeesPage
 from tests.ui.pages.login_page import LoginPage
 from selenium.webdriver.common.by import By
@@ -16,7 +17,7 @@ from selenium.webdriver.common.by import By
 def ui_user():
     """通过真实 HTTP 服务注册一个测试用户，返回用户名密码。"""
     payload = {"username": "uiuser", "password": "secret123"}
-    requests.post(f"{HOST_BASE_URL}/api/auth/register", json=payload)
+    requests.post(f"{APP_BASE_URL}/api/auth/register", json=payload)
     return payload
 
 @pytest.fixture

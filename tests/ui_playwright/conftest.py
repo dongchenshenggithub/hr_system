@@ -11,8 +11,9 @@ from pathlib import Path
 import pytest
 import requests
 from playwright.sync_api import sync_playwright
+from tests.config import APP_BASE_URL
 
-BASE_URL = "http://127.0.0.1:8000"
+# BASE_URL = "http://127.0.0.1:8000"
 AUTH_FILE = str(Path(__file__).parent / ".auth" / "user.json")
 
 
@@ -26,7 +27,7 @@ for var in ("http_proxy", "https_proxy", "all_proxy",
 @pytest.fixture(scope="session")
 def app_base_url():
     """被测服务的基础地址，session 级复用。"""
-    return BASE_URL
+    return APP_BASE_URL
 
 
 @pytest.fixture(scope="session")
