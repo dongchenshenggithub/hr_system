@@ -12,10 +12,10 @@ import pytest
 import requests
 from playwright.sync_api import sync_playwright
 from tests.config import APP_BASE_URL
+from tests.factories import unique_username
 
 # BASE_URL = "http://127.0.0.1:8000"
 AUTH_FILE = str(Path(__file__).parent / ".auth" / "user.json")
-
 
 import os
 
@@ -35,7 +35,7 @@ def auth_storage_state(app_base_url, browser):
     """注册并登录，用插件提供的 browser 保存登录态。"""
     Path(AUTH_FILE).parent.mkdir(parents=True, exist_ok=True)
 
-    username = f"e2e_{uuid.uuid4().hex[:8]}"
+    username = unique_username("e2e")
     password = "Secret123"
 
     # 注册用户（用 requests，绕过代理）
@@ -45,7 +45,15 @@ def auth_storage_state(app_base_url, browser):
         f"{app_base_url}/api/auth/register",
         json={"username": username, "password": password},
     )
+    # assert resp.status_code == 201, f"注册失败: {resp.status_code} {resp.text}"
+    # session.close()
     assert resp.status_code == 201, f"注册失败: {resp.status_code} {resp.text}"
+    login = session.post(
+        f"{app_base_url}/api/auth/login",
+        json={"username": username, "password": password},
+    )
+    assert login.status_code == 200, f"登录失败: {login.status_code} {login.text}"
+    token = login.json()["access_token"]
     session.close()
 
     # 用插件提供的 browser 创建上下文，不再手动 sync_playwright()
@@ -61,7 +69,17 @@ def auth_storage_state(app_base_url, browser):
     context.storage_state(path=AUTH_FILE)
     context.close()
 
-    return AUTH_FILE
+    yield AUTH_FILE
+    cleanup = requests.Session()
+    cleanup.trust_env = False
+    delete_resp = cleanup.delete(
+        f"{app_base_url}/api/auth/users/{username}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert delete_resp.status_code == 204, (
+        f"清理测试用户失败: {delete_resp.status_code} {delete_resp.text}"
+    )
+    cleanup.close()    
 
 
 @pytest.fixture(scope="session")

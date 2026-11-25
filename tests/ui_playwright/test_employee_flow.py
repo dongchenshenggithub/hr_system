@@ -2,12 +2,13 @@ import uuid
 import pytest
 import requests
 from playwright.sync_api import expect
+from tests.factories import unique_username, unique_email
 
 @pytest.fixture
 def ui_user(app_base_url):
     session = requests.Session()
     session.trust_env = False
-    payload = {"username": f"uiuser_{uuid.uuid4().hex[:8]}", "password": "Secrect123"}
+    payload = {"username": unique_username("uiuser"), "password": "Secrect123"}
     #registry an user
     resp = session.post(
         f"{app_base_url}/api/auth/register",
@@ -39,13 +40,13 @@ def employee_page(page, app_base_url):
     # page.get_by_role("button", name="登录").click()
     page.goto(f"{app_base_url}/employees")
     page.wait_for_selector("#employee-form")    
-    try:
-        page.wait_for_url("**/employees", timeout=10000)
-    except Exception:
-        print(f"等待超时，当前 URL: {page.url}")
-        print(f"页面提示: {page.locator('#message').text_content()}")
-        print(f"localStorage token: {page.evaluate('localStorage.getItem(\"token\")')}")
-        raise
+    # try:
+    #     page.wait_for_url("**/employees", timeout=10000)
+    # except Exception:
+    #     print(f"等待超时，当前 URL: {page.url}")
+    #     print(f"页面提示: {page.locator('#message').text_content()}")
+    #     print(f"localStorage token: {page.evaluate('localStorage.getItem(\"token\")')}")
+    #     raise
     return page
 
 def test_form_elements_present(employee_page):
