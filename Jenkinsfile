@@ -106,7 +106,16 @@ pipeline {
            	    kill $UVICORN_PID || true
           	    chown -R 112:115 reports/allure-results
 	        '''
-            stash includes: 'reports/allure-results/**', name: 'allure-results'
+            // 旧代码：stash 写在 steps 末尾，pytest 一旦失败就不会执行，
+            // 导致 post always 里的 unstash 找不到 stash 而抛异常
+            // stash includes: 'reports/allure-results/**', name: 'allure-results'
+	    }
+	    post {
+	        always {
+	            // allowEmpty: true 让 pytest 早期失败、结果目录为空时也能 stash 成功，
+	            // 保证 unstash 永远不会因为 stash 不存在而抛异常
+	            stash includes: 'reports/allure-results/**', name: 'allure-results', allowEmpty: true
+	        }
 	    }
 	}
 
@@ -134,10 +143,21 @@ pipeline {
                 if (fileExists('reports/ui-junit.xml')) {
                     junit 'reports/ui-junit.xml'
                 }
- '''               if (fileExists('reports/allure-results')){'''
-		    unstash 'allure-results'
-                    allure includeProperties: false, jdk: '', results: [[path: 'reports/allure-results']]  
-              ''' }'''
+                // 旧代码：三引号在 Groovy 里只是字符串字面量，if 判断从未生效，
+                // 导致 unstash 和 allure 无条件执行；stash 不存在时 unstash 抛异常，
+                // 整个 script 中断，allure 步骤被跳过，报告就消失了
+                // '''               if (fileExists('reports/allure-results')){'''
+                // unstash 'allure-results'
+                // allure includeProperties: false, jdk: '', results: [[path: 'reports/allure-results']]
+                // ''' }'''
+                try {
+                    unstash 'allure-results'
+                    if (fileExists('reports/allure-results')) {
+                        allure includeProperties: false, jdk: '', results: [[path: 'reports/allure-results']]
+                    }
+                } catch (Exception e) {
+                    echo "跳过 Allure：未找到 allure-results stash（Playwright 阶段可能未成功）"
+                }
             }
         }
     }
